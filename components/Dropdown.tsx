@@ -1,62 +1,89 @@
-import React, { useState } from 'react';
-import { View, StyleSheet, Text } from 'react-native';
+import React from 'react';
+import { View, StyleSheet } from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
+import { ChevronDown } from 'lucide-react-native';
 
-const Dropdown = () => {
-  const [selectedValue, setSelectedValue] = useState('');
+interface PickerOption {
+  label: string;
+  value: string;
+}
 
+interface DynamicPickerProps {
+  selectedValue: string;
+  onValueChange: (value: string) => void;
+  options: PickerOption[];
+}
+
+const DynamicPicker: React.FC<DynamicPickerProps> = ({ selectedValue, onValueChange, options }) => {
   return (
-    <View style={styles.container}>
-      <Text style={styles.label}>Select an option:</Text>
-      <RNPickerSelect
-        onValueChange={(value) => setSelectedValue(value)}
-        items={[
-          { label: 'Option 1', value: 'option1' },
-          { label: 'Option 2', value: 'option2' },
-          { label: 'Option 3', value: 'option3' },
-        ]}
-        placeholder={{ label: 'Select...', value: null }}
-        value={selectedValue}
-        style={pickerSelectStyles}
-        useNativeAndroidPickerStyle={false} // Needed for custom styles on Android
-      />
+    <View style={styles.pickerContainer}>
+      <View style={styles.selectStyle}>
+        <RNPickerSelect
+          value={selectedValue}
+          onValueChange={onValueChange}
+          items={options}
+          useNativeAndroidPickerStyle={false} // Ensures custom styles are applied on Android
+          style={pickerSelectStyles}
+        />
+        <ChevronDown size={20} color="#888" style={styles.chevronIcon} />
+      </View>
     </View>
   );
 };
 
+export default DynamicPicker;
+
+
 const styles = StyleSheet.create({
-  container: {
-    padding: 16,
-    backgroundColor: 'white',
+  pickerContainer: {
+    margin:0,
+    padding:0
   },
-  label: {
-    fontSize: 16,
-    marginBottom: 5,
-    color: '#333',
+  selectStyle: {
+    position:'relative',
+        justifyContent: "space-between",
+        alignItems:'center',
+        backgroundColor: "white",
+        borderRadius: 10,
+        paddingHorizontal:10,
+        width: "100%",
+        alignSelf: "center",
+      borderColor:'grey',
+      borderWidth:1,
   },
+  chevronIcon:{
+    position:"absolute",
+    right:10,
+    padding:10,
+    top:8
+  }
 });
 
 const pickerSelectStyles = StyleSheet.create({
-  inputIOS: {
-    fontSize: 16,
-    paddingVertical: 12,
-    paddingHorizontal: 10,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 4,
-    color: 'black',
-    backgroundColor: '#f9f9f9',
-  },
-  inputAndroid: {
-    fontSize: 16,
-    paddingVertical: 12,
-    paddingHorizontal: 10,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 4,
-    color: 'black',
-    backgroundColor: '#f9f9f9',
-  },
-});
 
-export default Dropdown;
+    inputIOS: {
+      flex:1,
+      fontSize: 16,
+      marginLeft:10,
+      marginRight:100,
+      marginTop:18,
+      marginBottom:18,
+      textAlign:'left',
+      color: 'black',
+      backgroundColor: '#f0f0f0',
+    },
+
+    inputAndroid: {
+      fontSize: 16,
+      paddingVertical: 12,
+      paddingHorizontal: 10,
+      borderWidth: 1,
+      borderColor: '#ccc',
+      borderRadius: 5,
+      color: 'black',
+      backgroundColor: '#f0f0f0',
+      marginBottom: 10,
+    },
+
+  });
+  

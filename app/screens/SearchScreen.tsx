@@ -1,12 +1,22 @@
-import React, { useState } from 'react';
-import { 
-  View, Text, FlatList, Image, TouchableOpacity, ActivityIndicator, StyleSheet, TextInput 
-} from 'react-native';
-import { useRouter } from 'expo-router';
-import RNPickerSelect from 'react-native-picker-select';
-import Dropdown from '@/components/Dropdown';
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  FlatList,
+  Image,
+  TouchableOpacity,
+  ActivityIndicator,
+  StyleSheet,
+  TextInput,
+} from "react-native";
+import { useRouter } from "expo-router";
 
-import { searchMedia } from '@/services/api';
+import { Search } from "lucide-react-native";
+
+import { searchMedia } from "@/services/api";
+import DynamicPicker from "@/components/Dropdown";
+import Pagination from "@/components/Pagination";
+
 interface Media {
   id: number;
   title?: string;
@@ -16,46 +26,63 @@ interface Media {
   release_date: string;
 }
 
-
-
 export default function MovieListScreen() {
-  const [searchQuery, setSearchQuery] = useState<string>('');
-  const [searchType, setSearchType] = useState<'movie' | 'multi' | 'tv'>('movie');
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [searchType, setSearchType] = useState<string>("movie");
   const [results, setResults] = useState<Media[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const [page, setPage] = useState<number>(1);
+  const [totalPages, setTotalPages] = useState<number>(1);
 
 
-const fetchSearchResults = async () => {
+  const fetchSearchResults = async () => {
     if (!searchQuery.trim()) {
-      setError('Movie/TV show name is required');
+      setError("Movie/TV show name is required");
       return;
     }
     setLoading(true);
     setError(null);
     try {
-      const data = await searchMedia(searchQuery, searchType);
+      const data = await searchMedia(searchQuery, searchType, page);
       setResults(data.results || []);
+      setTotalPages(data.total_pages); // ✅ Corrected `total_pages`
     } catch (error) {
-      console.error('Error fetching search results:', error);
-      setError('Failed to fetch results');
+      console.error("Error fetching search results:", error);
+      setError("Failed to fetch results");
     } finally {
       setLoading(false);
     }
   };
   
+  useEffect(() => {
+    if (searchQuery.trim()) {
+      fetchSearchResults();
+    }
+  }, [page]);
+
+  const handlePress = (item: Media) => {
+    const isMovie = !!item.title; // If `title` exists, it's a movie; otherwise, it's a TV show
+    const type = isMovie ? "movie" : "tv";
+    router.push(`/${type}/${item.id}`);
+  };
 
   const renderItem = ({ item }: { item: Media }) => (
     <View style={styles.card}>
-      <Image source={{ uri: `https://image.tmdb.org/t/p/w500${item.poster_path}` }} style={styles.image} />
+      <Image
+        source={{ uri: `https://image.tmdb.org/t/p/w500${item.poster_path}` }}
+        style={styles.image}
+      />
       <View style={styles.details}>
         <Text style={styles.title}>{item.title || item.name}</Text>
-        <Text style={styles.text}>Popularity: {item.popularity.toFixed(2)}</Text>
+        <Text style={styles.text}>
+          Popularity: {item.popularity.toFixed(2)}
+        </Text>
         <Text style={styles.text}>Release Date: {item.release_date}</Text>
-        <TouchableOpacity 
-          style={styles.button} 
-          onPress={() => router.push(`/movie/${item.id}`)}
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => handlePress(item)}
         >
           <Text style={styles.buttonText}>More Details</Text>
         </TouchableOpacity>
@@ -66,102 +93,131 @@ const fetchSearchResults = async () => {
   return (
     <View style={styles.container}>
       <Text style={styles.header}>Search Movies & TV Shows</Text>
-      <TextInput
-        style={styles.searchInput}
-        placeholder="Search Movie/TV Show Name*"
-        placeholderTextColor="#888"
-        value={searchQuery}
-        onChangeText={setSearchQuery}
-      />
+      <View style={styles.customInput}>
+        <Search size={20} color="#888" style={styles.searchIcon} />
+        <TextInput
+          style={styles.searchInput}
+          placeholder="i.e. James Bond, CSI"
+          placeholderTextColor="#888"
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+        />
+      </View>
 
       <View style={styles.pickerContainer}>
+        <View>
+          <DynamicPicker
+            selectedValue={searchType}
+            onValueChange={(value) => {setSearchType(value);
+              setPage(1);
+            }}
+            
+            options={[
+              { label: "Movie", value: "movie" },
+              { label: "TV Show", value: "tv" },
+              { label: "Multi (All)", value: "multi" },
+            ]}
+            
+          />
+        </View>
 
-      <View style={styles.selectStyle}>
-
-  <RNPickerSelect
-    value={searchType} 
-    onValueChange={(value) => setSearchType(value)}
-    items={[
-      { label: 'Movie', value: 'movie' },
-      { label: 'TV Show', value: 'tv' },
-      { label: 'Multi (All)', value: 'multi' },
-    ]}
-    useNativeAndroidPickerStyle={false} // Ensures custom styles are applied on Android
-    style={pickerSelectStyles}
-  />
-  </View>
-
-
-<TouchableOpacity style={styles.searchButton} onPress={fetchSearchResults}>
-        <Text style={styles.buttonText}>Search</Text>
-</TouchableOpacity>
-
-</View>
+        <TouchableOpacity  style={styles.searchButton} onPress={fetchSearchResults}>
+          <Search size={20} color="white" />
+          <Text style={styles.buttonText}>Search</Text>
+        </TouchableOpacity>
+      </View>
 
       {error && <Text style={styles.errorText}>{error}</Text>}
-      {loading && <ActivityIndicator size="large" color="#E50914" style={styles.loader} />}
-
-      <FlatList
-        data={results}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={renderItem}
-        showsVerticalScrollIndicator={false}
+      {loading && (
+        <ActivityIndicator size="large" color="#E50914" style={styles.loader} />
+      )}
+      {results.length === 0 ? (
+        <Text style={styles.noResultsText}>Please initiate a search</Text>
+      ) : (
+        <>
+        <FlatList
+          data={results}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={renderItem}
+          showsVerticalScrollIndicator={false}
+        />
+        <Pagination
+        currentPage={page}
+        totalPages={totalPages}
+        onPageChange={setPage}
+        
       />
+      </>
+      )}
     </View>
   );
 }
 
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'white',
+    backgroundColor: "white",
     padding: 10,
   },
   header: {
     fontSize: 13,
     marginBottom: 5,
-    textAlign: 'left',
+    textAlign: "left",
   },
   searchInput: {
-    backgroundColor: '#f0f0f0',
-    borderRadius: 5,
-    padding: 10,
+    flex: 1,
     fontSize: 16,
-    marginBottom: 10,
+    color: "black",
   },
   searchButton: {
-    width:"30%",
-    backgroundColor: '#E50914',
-    padding: 12,
-    borderRadius: 5,
-    alignItems: 'center',
-
+    width: "30%",
+    display: "flex",
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 10,
+    alignItems: "center",
+    backgroundColor: "#006f9c",
+    padding: 10,
+    borderRadius: 10,
+  },
+  searchIcon: {
+    marginRight: 8,
+  },
+  customInput: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f0f0f0",
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    width: "100%",
+    alignSelf: "center",
+    marginBottom: 10,
   },
   buttonText: {
-    color: 'white',
-    fontWeight: 'bold',
+    color: "white",
+    fontWeight: "bold",
   },
   errorText: {
-    color: 'red',
-    textAlign: 'center',
+    color: "red",
+    textAlign: "center",
     marginVertical: 10,
   },
   loader: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   card: {
-    flexDirection: 'row',
-    backgroundColor: '#fff',
+    flexDirection: "row",
+    backgroundColor: "#fff",
     marginBottom: 10,
     padding: 10,
     borderRadius: 10,
   },
   image: {
-    width: 80,
-    height: 80,
+    width: 90,
+    height: 90,
     borderRadius: 5,
   },
   details: {
@@ -170,63 +226,33 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   text: {
     fontSize: 14,
-    color: '#666',
+    color: "#666",
   },
   button: {
-  
     marginTop: 5,
-    backgroundColor: '#29B6F6',
+    backgroundColor: "#509bb5",
     paddingVertical: 5,
-    alignItems: 'center',
+    alignItems: "center",
     borderRadius: 5,
   },
   pickerContainer: {
-    display:"flex",
-    flexDirection:"row",
+    display: "flex",
+    flexDirection: "row",
     justifyContent:"space-between",
-    alignItems:"center",
-    
-
-
-
-    width:"100%",
-
+    alignItems: "center",
+    width: "100%",
   },
-  selectStyle:{
-backgroundColor:"#f0f0f0",
-borderRadius: 5,
 
-},
-
+  noResultsText: {
+    paddingTop: 100,
+    textAlign: "center",
+    fontSize: 26,
+    fontWeight: "bold",
+    color: "#666",
+    marginTop: 20,
+  },
 });
-
-
-const pickerSelectStyles = StyleSheet.create({
-    inputIOS: {
-        flex:1,
-      fontSize: 16,
-marginLeft:60,
-marginRight:60,
-marginTop:20,
-marginBottom:20,
-      color: 'black',
-      backgroundColor: '#f0f0f0',
-    },
-    inputAndroid: {
-      fontSize: 16,
-      paddingVertical: 12,
-      paddingHorizontal: 10,
-      borderWidth: 1,
-      borderColor: '#ccc',
-      borderRadius: 5,
-      color: 'black',
-      backgroundColor: '#f0f0f0',
-      marginBottom: 10,
-    },
-  });
-  
-

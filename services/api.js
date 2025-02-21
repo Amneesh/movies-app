@@ -3,9 +3,9 @@ import axios from 'axios';
 const BASE_URL = 'http://localhost:6767/api'; // Your backend server
 
 // Fetch Movies by Category (popular, now_playing, top_rated, upcoming)
-export const fetchMovies = async (category) => {
+export const fetchMovies = async (category, pageNumber) => {
   try {
-    const response = await axios.get(`${BASE_URL}/movies/${category}`);
+    const response = await axios.get(`${BASE_URL}/movies/${category}/${pageNumber}`);
     return response.data;
   } catch (error) {
     console.error('Error fetching movies:', error);
@@ -14,9 +14,9 @@ export const fetchMovies = async (category) => {
 };
 
 // Fetch TV Shows by Category (popular, top_rated, airing_today, on_the_air)
-export const fetchTVShows = async (category) => {
+export const fetchTVShows = async (category, pageNumber) => {
   try {
-    const response = await axios.get(`${BASE_URL}/tv/${category}`);
+    const response = await axios.get(`${BASE_URL}/tv/${category}/${pageNumber}`);
     return response.data;
   } catch (error) {
     console.error('Error fetching TV shows:', error);
@@ -47,10 +47,10 @@ export const fetchTVShowDetails = async (id) => {
 };
 
 // Search for Movies, TV Shows, or People
-export const searchMedia = async (query, type = 'multi') => {
+export const searchMedia = async (query, type = 'multi', pageNumber) => {
   try {
     const response = await axios.get(`${BASE_URL}/search`, {
-      params: { query, type },
+      params: { query, type , pageNumber },
     });
     return response.data;
   } catch (error) {

@@ -12,7 +12,7 @@ interface MovieDetails {
 }
 
 export default function MovieDetailScreen() {
-  const { id } = useLocalSearchParams(); // Get movie ID from route
+  const { id } = useLocalSearchParams(); 
   const [movie, setMovie] = useState<MovieDetails | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -59,7 +59,7 @@ export default function MovieDetailScreen() {
   );
 }
 
-// Styles
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,

@@ -15,13 +15,32 @@ const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
 console.log(TMDB_API_KEY);
 
 // Endpoint for fetching movies (now playing, popular, top rated, upcoming)
-app.get('/api/movies/:category', async (req, res) => {
-  const { category } = req.params;
+app.get('/api/movies/:category/:pageNumber', async (req, res) => {
+  const { category , pageNumber} = req.params;
   try {
     const response = await axios.get(`${TMDB_BASE_URL}/movie/${category}`, {
       params: {
         api_key: TMDB_API_KEY,
         language: 'en-US',
+        page:pageNumber,
+      },
+    });
+    res.json(response.data);
+    console.log(response.data);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Error fetching movies');
+  }
+});
+
+app.get('/api/tv/:category/:pageNumber', async (req, res) => {
+  const { category, pageNumber } = req.params;
+  try {
+    const response = await axios.get(`${TMDB_BASE_URL}/tv/${category}`, {
+      params: {
+        api_key: TMDB_API_KEY,
+        language: 'en-US',
+        page:pageNumber,
       },
     });
     res.json(response.data);
@@ -33,13 +52,14 @@ app.get('/api/movies/:category', async (req, res) => {
 
 // Endpoint for searching movies, TV shows, and multi-search
 app.get('/api/search', async (req, res) => {
-  const { query, type } = req.query;
+  const { query, type , pageNumber } = req.query;
   try {
     const response = await axios.get(`${TMDB_BASE_URL}/search/${type}`, {
       params: {
         api_key: TMDB_API_KEY,
         query: query,
         language: 'en-US',
+        page:pageNumber,
       },
     });
     res.json(response.data);
@@ -67,21 +87,6 @@ app.get('/api/media/:id', async (req, res) => {
 });
 
 
-app.get('/api/tv/:category', async (req, res) => {
-    const { category } = req.params;
-    try {
-      const response = await axios.get(`${TMDB_BASE_URL}/tv/${category}`, {
-        params: {
-          api_key: TMDB_API_KEY,
-          language: 'en-US',
-        },
-      });
-      res.json(response.data);
-    } catch (error) {
-      console.error(error);
-      res.status(500).send('Error fetching movies');
-    }
-  });
 
   app.get('/api/movie/:id', async (req, res) => {
     const { id } = req.params;

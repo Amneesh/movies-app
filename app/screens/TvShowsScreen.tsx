@@ -1,33 +1,34 @@
 import React, { useState, useEffect } from "react";
-import { 
-  View, Text, FlatList, Image, TouchableOpacity, ActivityIndicator, StyleSheet 
+import {
+  View,
+  Text,
+  FlatList,
+  Image,
+  TouchableOpacity,
+  ActivityIndicator,
+  StyleSheet,
 } from "react-native";
 import { useRouter } from "expo-router";
-import RNPickerSelect from "react-native-picker-select";
 
 import { fetchTVShows } from "@/services/api";
-
-
-// TV Show categories
-const TV_CATEGORIES = [
-  { label: "Airing Today", value: "airing_today" },
-  { label: "On The Air", value: "on_the_air" },
-  { label: "Popular", value: "popular" },
-  { label: "Top Rated", value: "top_rated" },
-];
+import DynamicPicker from "@/components/Dropdown";
+import Pagination from "@/components/Pagination"; // Import Pagination Component
 
 export default function TVShowsScreen() {
-  const [tvCategory, setTVCategory] = useState<string>("popular"); // Default category
+  const [tvCategory, setTVCategory] = useState<string>("popular");
   const [tvShows, setTVShows] = useState<TVShow[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  const [page, setPage] = useState<number>(1);
+  const [totalPages, setTotalPages] = useState<number>(1); // Track total pages
   const router = useRouter();
 
   useEffect(() => {
     const loadTVShows = async () => {
       setLoading(true);
       try {
-        const results = await fetchTVShows(tvCategory);
+        const results = await fetchTVShows(tvCategory, page);
         setTVShows(results.results);
+        setTotalPages(results.total_pages); // Update total pages
       } catch (error) {
         console.error("Error fetching TV shows:", error);
       } finally {
@@ -36,27 +37,7 @@ export default function TVShowsScreen() {
     };
 
     loadTVShows();
-  }, [tvCategory]);
-
-
-//   useEffect(() => {
-//     fetchTVShowsFunc(tvCategory);
-//   }, [tvCategory]);
-
-//   const fetchTVShowsFunc = async (category: string) => {
-//     setLoading(true);
-
-
-//     try {
-//         const response = await fetchTVShows(tvCategory)
-//         // console.log('Tv shoes', response);
-//         setTVShows(response.results); // Adjust based on the structure of your response
-//       } catch (error) {
-//         console.error('Error fetching movies:', error);
-//       } finally {
-//         setLoading(false);
-//       }
-//   };
+  }, [tvCategory, page]);
 
   interface TVShow {
     id: number;
@@ -66,18 +47,23 @@ export default function TVShowsScreen() {
     first_air_date: string;
   }
 
-  // Function to render each TV show item
   const renderItem = ({ item }: { item: TVShow }) => (
     <View style={styles.card}>
-      <Image 
-        source={{ uri: item.poster_path ? `https://image.tmdb.org/t/p/w500${item.poster_path}` : 'https://via.placeholder.com/200x300' }} 
-        style={styles.image} 
+      <Image
+        source={{
+          uri: item.poster_path
+            ? `https://image.tmdb.org/t/p/w500${item.poster_path}`
+            : "https://via.placeholder.com/200x300",
+        }}
+        style={styles.image}
       />
       <View style={styles.details}>
         <Text style={styles.title}>{item.name}</Text>
-        <Text style={styles.text}>Popularity: {item.popularity.toFixed(2)}</Text>
+        <Text style={styles.text}>
+          Popularity: {item.popularity.toFixed(2)}
+        </Text>
         <Text style={styles.text}>First Air Date: {item.first_air_date}</Text>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.button}
           onPress={() => router.push(`/tv/${item.id}`)}
         >
@@ -89,31 +75,40 @@ export default function TVShowsScreen() {
 
   return (
     <View style={styles.container}>
-
-
-      <View style={styles.pickerContainer}>
-      <View style={styles.selectStyle}>
-
-        <RNPickerSelect
-          onValueChange={(value) => setTVCategory(value)}
-          items={TV_CATEGORIES}
-          value={tvCategory}
-          style={pickerSelectStyles}
-          placeholder={{ label: "Select Category...", value: null }}
+      <View style={styles.filter}>
+        <DynamicPicker
+          selectedValue={tvCategory}
+          onValueChange={(value) => {
+            setTVCategory(value);
+            setPage(1); // Reset to page 1 when category changes
+          }}
+          options={[
+            { label: "Airing Today", value: "airing_today" },
+            { label: "On The Air", value: "on_the_air" },
+            { label: "Popular", value: "popular" },
+            { label: "Top Rated", value: "top_rated" },
+          ]}
         />
-        </View>
       </View>
 
-      {/* Loader */}
       {loading ? (
         <ActivityIndicator size="large" color="#E50914" style={styles.loader} />
       ) : (
-        <FlatList
-          data={tvShows}
-          keyExtractor={(item) => item.id.toString()}
-          renderItem={renderItem}
-          showsVerticalScrollIndicator={false}
-        />
+        <>
+          <FlatList
+            data={tvShows}
+            keyExtractor={(item) => item.id.toString()}
+            renderItem={renderItem}
+            showsVerticalScrollIndicator={false}
+          />
+
+          {/* Pagination Component */}
+          <Pagination
+            currentPage={page}
+            totalPages={totalPages}
+            onPageChange={setPage}
+          />
+        </>
       )}
     </View>
   );
@@ -132,7 +127,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginBottom: 15,
   },
- 
   loader: {
     flex: 1,
     justifyContent: "center",
@@ -146,8 +140,8 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   image: {
-    width: 80,
-    height: 80,
+    width: 90,
+    height: 90,
     borderRadius: 5,
   },
   details: {
@@ -164,7 +158,7 @@ const styles = StyleSheet.create({
   },
   button: {
     marginTop: 5,
-    backgroundColor: "#29B6F6",
+    backgroundColor: "#509bb5",
     paddingVertical: 5,
     alignItems: "center",
     borderRadius: 5,
@@ -173,39 +167,12 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: "bold",
   },
-  pickerContainer: {        
-    marginBottom: 10,
-   display:'flex',
-   flexDirection:'row',
-   justifyContent:'center',
-   alignItems:'center',
-   
-    width:"100%",
-},
-selectStyle:{
-    backgroundColor:"#f0f0f0",
-    borderRadius: 5,
-    width:"50%",
-    },
-});
-
-// Styles for picker select
-const pickerSelectStyles = StyleSheet.create({
-    inputIOS: {
-        flex:1,
-    fontSize: 16,
-marginLeft:60,
-marginRight:60,
-marginTop:20,
-marginBottom:20,
-    color: 'black',
-    backgroundColor: '#f0f0f0',
-    },
-  inputAndroid: {
-    fontSize: 16,
-    paddingVertical: 8,
-    paddingHorizontal: 10,
-    color: "black",
+  filter: {
+    paddingTop: 10,
+    paddingBottom: 20,
+    paddingLeft: 60,
+    paddingRight: 60,
   },
 });
+
 
