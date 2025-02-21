@@ -1,8 +1,14 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, Image, ActivityIndicator, StyleSheet, TouchableOpacity } from 'react-native';
-import { useLocalSearchParams, useNavigation } from 'expo-router';
-import { fetchMovieDetails } from '@/services/api';
-
+import React, { useEffect, useState } from "react";
+import {
+  View,
+  Text,
+  Image,
+  ActivityIndicator,
+  StyleSheet,
+  TouchableOpacity,
+} from "react-native";
+import { useLocalSearchParams, useNavigation } from "expo-router";
+import { fetchMovieDetails } from "@/services/api";
 
 interface MovieDetails {
   id: number;
@@ -12,7 +18,7 @@ interface MovieDetails {
 }
 
 export default function MovieDetailScreen() {
-  const { id } = useLocalSearchParams(); 
+  const { id } = useLocalSearchParams();
   const [movie, setMovie] = useState<MovieDetails | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -26,18 +32,16 @@ export default function MovieDetailScreen() {
     loadMovieDetails();
   }, [id]);
 
-
-
   useEffect(() => {
     if (movie) {
       navigation.setOptions({ title: movie.title });
     }
   }, [movie, navigation]);
 
-
-
   if (loading) {
-    return <ActivityIndicator size="large" color="#E50914" style={styles.loader} />;
+    return (
+      <ActivityIndicator size="large" color="#E50914" style={styles.loader} />
+    );
   }
 
   return (
@@ -47,51 +51,49 @@ export default function MovieDetailScreen() {
           <Text style={styles.title}>{movie.title}</Text>
 
           <Image
-            source={{ uri: `https://image.tmdb.org/t/p/w500${movie.poster_path}` }}
+            source={{
+              uri: `https://image.tmdb.org/t/p/w500${movie.poster_path}`,
+            }}
             style={styles.poster}
           />
 
           <Text style={styles.overview}>{movie.overview}</Text>
-
         </>
       )}
     </View>
   );
 }
 
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'flex-start',
-    gap:30,
-    backgroundColor: 'white',
+    justifyContent: "flex-start",
+    gap: 30,
+    backgroundColor: "white",
     paddingTop: 50,
-    padding:40,
-    alignItems: 'center',
+    padding: 40,
+    alignItems: "center",
   },
   loader: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   poster: {
     width: 300,
     height: 300,
   },
   title: {
-    color: 'black',
+    color: "black",
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginTop: 10,
-    textAlign: 'center',
+    textAlign: "center",
   },
   overview: {
-    color: 'black',
+    color: "black",
     fontSize: 16,
     marginTop: 10,
-    textAlign: 'center',
+    textAlign: "center",
   },
- 
-
 });

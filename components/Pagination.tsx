@@ -12,12 +12,10 @@ const Pagination: React.FC<PaginationProps> = ({
   totalPages,
   onPageChange,
 }) => {
-  if (totalPages < 1) return null; // Don't show pagination if no pages exist
+  if (totalPages < 1) return null;
 
   return (
     <View style={styles.pagination}>
-      
-      
       <TouchableOpacity
         onPress={() => onPageChange(Math.max(currentPage - 1, 1))}
         disabled={currentPage === 1}
@@ -61,7 +59,6 @@ const Pagination: React.FC<PaginationProps> = ({
           )
       )}
 
-
       {currentPage < totalPages - 2 && <Text style={styles.pageText}>...</Text>}
 
       <TouchableOpacity
@@ -82,9 +79,9 @@ const styles = StyleSheet.create({
   pagination: {
     flexDirection: "row",
     justifyContent: "center",
-    alignItems:"center",
+    alignItems: "center",
     marginBottom: 20,
-    padding:10
+    padding: 10,
   },
   pageButton: {
     padding: 10,
@@ -104,7 +101,6 @@ const styles = StyleSheet.create({
   activeText: {
     color: "white",
   },
-
 });
 
 export default Pagination;

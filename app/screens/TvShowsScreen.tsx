@@ -9,17 +9,25 @@ import {
   StyleSheet,
 } from "react-native";
 import { useRouter } from "expo-router";
-
 import { fetchTVShows } from "@/services/api";
 import DynamicPicker from "@/components/Dropdown";
-import Pagination from "@/components/Pagination"; // Import Pagination Component
+import Pagination from "@/components/Pagination";
+
+interface TVShow {
+  id: number;
+  name: string;
+  poster_path: string | null;
+  popularity: number;
+  first_air_date: string;
+}
 
 export default function TVShowsScreen() {
   const [tvCategory, setTVCategory] = useState<string>("popular");
   const [tvShows, setTVShows] = useState<TVShow[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [page, setPage] = useState<number>(1);
-  const [totalPages, setTotalPages] = useState<number>(1); // Track total pages
+  const [totalPages, setTotalPages] = useState<number>(1);
+
   const router = useRouter();
 
   useEffect(() => {
@@ -28,7 +36,7 @@ export default function TVShowsScreen() {
       try {
         const results = await fetchTVShows(tvCategory, page);
         setTVShows(results.results);
-        setTotalPages(results.total_pages); // Update total pages
+        setTotalPages(results.total_pages);
       } catch (error) {
         console.error("Error fetching TV shows:", error);
       } finally {
@@ -38,14 +46,6 @@ export default function TVShowsScreen() {
 
     loadTVShows();
   }, [tvCategory, page]);
-
-  interface TVShow {
-    id: number;
-    name: string;
-    poster_path: string | null;
-    popularity: number;
-    first_air_date: string;
-  }
 
   const renderItem = ({ item }: { item: TVShow }) => (
     <View style={styles.card}>
@@ -80,7 +80,7 @@ export default function TVShowsScreen() {
           selectedValue={tvCategory}
           onValueChange={(value) => {
             setTVCategory(value);
-            setPage(1); // Reset to page 1 when category changes
+            setPage(1);
           }}
           options={[
             { label: "Airing Today", value: "airing_today" },
@@ -102,7 +102,6 @@ export default function TVShowsScreen() {
             showsVerticalScrollIndicator={false}
           />
 
-          {/* Pagination Component */}
           <Pagination
             currentPage={page}
             totalPages={totalPages}
@@ -114,7 +113,6 @@ export default function TVShowsScreen() {
   );
 }
 
-// Styles
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -174,5 +172,3 @@ const styles = StyleSheet.create({
     paddingRight: 60,
   },
 });
-
-

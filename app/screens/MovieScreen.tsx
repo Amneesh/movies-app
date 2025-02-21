@@ -12,6 +12,7 @@ import { useRouter } from "expo-router";
 import { fetchMovies } from "@/services/api";
 import DynamicPicker from "@/components/Dropdown";
 import Pagination from "@/components/Pagination";
+
 interface Movie {
   id: number;
   title: string;
@@ -35,7 +36,7 @@ export default function MovieListScreen() {
       try {
         const results = await fetchMovies(selectedCategory, page);
         setMovies(results.results);
-        setTotalPages(results.total_pages); // ✅ Update total pages
+        setTotalPages(results.total_pages);
       } catch (error) {
         console.error("Error fetching movies:", error);
       } finally {
@@ -44,7 +45,7 @@ export default function MovieListScreen() {
     };
 
     loadMovies();
-  }, [selectedCategory, page]); // ✅ Trigger when `page` changes
+  }, [selectedCategory, page]);
 
   const renderItem = ({ item }: { item: Movie }) => (
     <View style={styles.card}>
@@ -161,5 +162,4 @@ const styles = StyleSheet.create({
     paddingLeft: 60,
     paddingRight: 60,
   },
- 
 });

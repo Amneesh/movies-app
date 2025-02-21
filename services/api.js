@@ -1,8 +1,8 @@
 import axios from 'axios';
 
-const BASE_URL = 'http://localhost:6767/api'; // Your backend server
+const BASE_URL = 'http://localhost:6767/api'; 
 
-// Fetch Movies by Category (popular, now_playing, top_rated, upcoming)
+
 export const fetchMovies = async (category, pageNumber) => {
   try {
     const response = await axios.get(`${BASE_URL}/movies/${category}/${pageNumber}`);
@@ -13,7 +13,7 @@ export const fetchMovies = async (category, pageNumber) => {
   }
 };
 
-// Fetch TV Shows by Category (popular, top_rated, airing_today, on_the_air)
+
 export const fetchTVShows = async (category, pageNumber) => {
   try {
     const response = await axios.get(`${BASE_URL}/tv/${category}/${pageNumber}`);
@@ -24,7 +24,7 @@ export const fetchTVShows = async (category, pageNumber) => {
   }
 };
 
-// Fetch Movie Details by ID
+
 export const fetchMovieDetails = async (id) => {
   try {
     const response = await axios.get(`${BASE_URL}/movie/${id}`);
@@ -35,7 +35,7 @@ export const fetchMovieDetails = async (id) => {
   }
 };
 
-// Fetch TV Show Details by ID
+
 export const fetchTVShowDetails = async (id) => {
   try {
     const response = await axios.get(`${BASE_URL}/tv/${id}`);
@@ -46,7 +46,7 @@ export const fetchTVShowDetails = async (id) => {
   }
 };
 
-// Search for Movies, TV Shows, or People
+
 export const searchMedia = async (query, type = 'multi', pageNumber) => {
   try {
     const response = await axios.get(`${BASE_URL}/search`, {

@@ -10,9 +10,7 @@ import {
   TextInput,
 } from "react-native";
 import { useRouter } from "expo-router";
-
 import { Search } from "lucide-react-native";
-
 import { searchMedia } from "@/services/api";
 import DynamicPicker from "@/components/Dropdown";
 import Pagination from "@/components/Pagination";
@@ -36,7 +34,6 @@ export default function MovieListScreen() {
   const [page, setPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
 
-
   const fetchSearchResults = async () => {
     if (!searchQuery.trim()) {
       setError("Movie/TV show name is required");
@@ -47,7 +44,8 @@ export default function MovieListScreen() {
     try {
       const data = await searchMedia(searchQuery, searchType, page);
       setResults(data.results || []);
-      setTotalPages(data.total_pages); // ✅ Corrected `total_pages`
+      console.log(data.results);
+      setTotalPages(data.total_pages);
     } catch (error) {
       console.error("Error fetching search results:", error);
       setError("Failed to fetch results");
@@ -55,7 +53,7 @@ export default function MovieListScreen() {
       setLoading(false);
     }
   };
-  
+
   useEffect(() => {
     if (searchQuery.trim()) {
       fetchSearchResults();
@@ -63,7 +61,7 @@ export default function MovieListScreen() {
   }, [page]);
 
   const handlePress = (item: Media) => {
-    const isMovie = !!item.title; // If `title` exists, it's a movie; otherwise, it's a TV show
+    const isMovie = !!item.title;
     const type = isMovie ? "movie" : "tv";
     router.push(`/${type}/${item.id}`);
   };
@@ -108,20 +106,22 @@ export default function MovieListScreen() {
         <View>
           <DynamicPicker
             selectedValue={searchType}
-            onValueChange={(value) => {setSearchType(value);
+            onValueChange={(value) => {
+              setSearchType(value);
               setPage(1);
             }}
-            
             options={[
               { label: "Movie", value: "movie" },
               { label: "TV Show", value: "tv" },
               { label: "Multi (All)", value: "multi" },
             ]}
-            
           />
         </View>
 
-        <TouchableOpacity  style={styles.searchButton} onPress={fetchSearchResults}>
+        <TouchableOpacity
+          style={styles.searchButton}
+          onPress={fetchSearchResults}
+        >
           <Search size={20} color="white" />
           <Text style={styles.buttonText}>Search</Text>
         </TouchableOpacity>
@@ -135,19 +135,18 @@ export default function MovieListScreen() {
         <Text style={styles.noResultsText}>Please initiate a search</Text>
       ) : (
         <>
-        <FlatList
-          data={results}
-          keyExtractor={(item) => item.id.toString()}
-          renderItem={renderItem}
-          showsVerticalScrollIndicator={false}
-        />
-        <Pagination
-        currentPage={page}
-        totalPages={totalPages}
-        onPageChange={setPage}
-        
-      />
-      </>
+          <FlatList
+            data={results}
+            keyExtractor={(item) => item.id.toString()}
+            renderItem={renderItem}
+            showsVerticalScrollIndicator={false}
+          />
+          <Pagination
+            currentPage={page}
+            totalPages={totalPages}
+            onPageChange={setPage}
+          />
+        </>
       )}
     </View>
   );
@@ -242,7 +241,7 @@ const styles = StyleSheet.create({
   pickerContainer: {
     display: "flex",
     flexDirection: "row",
-    justifyContent:"space-between",
+    justifyContent: "space-between",
     alignItems: "center",
     width: "100%",
   },
